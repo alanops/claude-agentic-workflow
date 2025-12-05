@@ -46,8 +46,17 @@ jobs:
             exit 0
           fi
 
+          LATEST_TAG="${{ steps.get_latest_tag.outputs.latest_tag }}"
+
+          # If no tags exist yet (v0.0.0), start with minor version
+          if [ "$LATEST_TAG" == "v0.0.0" ]; then
+            echo "bump_type=minor" >> $GITHUB_OUTPUT
+            echo "No existing tags - creating first release with minor version"
+            exit 0
+          fi
+
           # Otherwise, check commit messages since last tag
-          COMMITS=$(git log ${{ steps.get_latest_tag.outputs.latest_tag }}..HEAD --pretty=format:"%s")
+          COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"%s")
 
           # Check for breaking changes (BREAKING CHANGE or !)
           if echo "$COMMITS" | grep -qE "BREAKING CHANGE|^[^:]+!:"; then
@@ -116,25 +125,38 @@ jobs:
 
           echo "# Release $NEW_VERSION" > CHANGELOG.md
           echo "" >> CHANGELOG.md
-          echo "## Changes since $LATEST_TAG" >> CHANGELOG.md
-          echo "" >> CHANGELOG.md
 
-          # Get commits since last tag and categorize them
-          git log ${LATEST_TAG}..HEAD --pretty=format:"%h %s" | while read line; do
-            if echo "$line" | grep -qE "^[a-f0-9]+ feat(\(.+\))?:"; then
-              echo "### Features" >> CHANGELOG.md
-              echo "- $line" | sed 's/^[a-f0-9]* feat[^:]*: //' >> CHANGELOG.md
-            elif echo "$line" | grep -qE "^[a-f0-9]+ fix(\(.+\))?:"; then
-              echo "### Bug Fixes" >> CHANGELOG.md
-              echo "- $line" | sed 's/^[a-f0-9]* fix[^:]*: //' >> CHANGELOG.md
-            elif echo "$line" | grep -qE "^[a-f0-9]+ docs(\(.+\))?:"; then
-              echo "### Documentation" >> CHANGELOG.md
-              echo "- $line" | sed 's/^[a-f0-9]* docs[^:]*: //' >> CHANGELOG.md
-            else
-              echo "### Other Changes" >> CHANGELOG.md
-              echo "- $line" >> CHANGELOG.md
-            fi
-          done
+          if [ "$LATEST_TAG" == "v0.0.0" ]; then
+            echo "## Initial Release" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "First release of Claude Agentic Workflow!" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "### Features" >> CHANGELOG.md
+            echo "- Complete autonomous AI development workflow" >> CHANGELOG.md
+            echo "- Automatic issue analysis and labeling" >> CHANGELOG.md
+            echo "- GitHub Actions integration" >> CHANGELOG.md
+            echo "- Comprehensive documentation" >> CHANGELOG.md
+          else
+            echo "## Changes since $LATEST_TAG" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+
+            # Get commits since last tag and categorize them
+            git log ${LATEST_TAG}..HEAD --pretty=format:"%h %s" | while read line; do
+              if echo "$line" | grep -qE "^[a-f0-9]+ feat(\(.+\))?:"; then
+                echo "### Features" >> CHANGELOG.md
+                echo "- $line" | sed 's/^[a-f0-9]* feat[^:]*: //' >> CHANGELOG.md
+              elif echo "$line" | grep -qE "^[a-f0-9]+ fix(\(.+\))?:"; then
+                echo "### Bug Fixes" >> CHANGELOG.md
+                echo "- $line" | sed 's/^[a-f0-9]* fix[^:]*: //' >> CHANGELOG.md
+              elif echo "$line" | grep -qE "^[a-f0-9]+ docs(\(.+\))?:"; then
+                echo "### Documentation" >> CHANGELOG.md
+                echo "- $line" | sed 's/^[a-f0-9]* docs[^:]*: //' >> CHANGELOG.md
+              else
+                echo "### Other Changes" >> CHANGELOG.md
+                echo "- $line" >> CHANGELOG.md
+              fi
+            done
+          fi
 
           # Read the changelog into output (escape for multiline)
           {
