@@ -16,6 +16,7 @@ This repository contains GitHub Actions workflows that enable Claude Code to:
 - **[Quick Start Guide](QUICK_START_GUIDE.md)** - ⭐ Get running in 15 minutes
 - **[Setup Guide](AGENTIC_WORKFLOW_SETUP.md)** - Comprehensive setup documentation
 - **[Implementation Report](AGENTIC_WORKFLOW_IMPLEMENTATION_REPORT.md)** - Complete technical documentation
+- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute and versioning system
 
 ## What You Get
 
@@ -177,17 +178,46 @@ See [Implementation Report](AGENTIC_WORKFLOW_IMPLEMENTATION_REPORT.md) for compl
 - **Claude Docs**: https://docs.claude.com/claude-code
 - **GitHub Actions**: https://docs.github.com/actions
 
+## Releases and Versioning
+
+This repository uses automatic semantic versioning based on commit messages:
+
+- **Automatic releases**: Every push to `main` creates a new version if changes are detected
+- **Semantic versioning**: Follows [SemVer](https://semver.org/) (major.minor.patch)
+- **Conventional commits**: Use [conventional commit messages](https://www.conventionalcommits.org/) for automatic versioning
+
+### Version Bumps
+
+- `feat:` → Minor version bump (v1.0.0 → v1.1.0)
+- `fix:` → Patch version bump (v1.0.0 → v1.0.1)
+- `feat!:` or `BREAKING CHANGE` → Major version bump (v1.0.0 → v2.0.0)
+
+### Latest Release
+
+Check the [Releases page](https://github.com/alanops/claude-agentic-workflow/releases) for the latest version and changelog.
+
 ## License
 
 MIT License - Feel free to use and modify for your needs.
 
 ## Contributing
 
-Contributions welcome! Please:
+Contributions are welcome! This project uses:
+- **Conventional Commits** for automatic versioning
+- **Semantic Versioning** for releases
+- **Automatic tagging** via GitHub Actions
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Commit message conventions
+- Development workflow
+- Pull request guidelines
+- Testing procedures
+
+Quick start for contributors:
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+2. Create a feature branch: `git checkout -b feat/amazing-feature`
+3. Commit using conventional commits: `git commit -m "feat: add amazing feature"`
+4. Push and create a pull request
 
 ## Acknowledgments
 
