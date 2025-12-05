@@ -1,0 +1,62 @@
+name: Issue Automation with Claude
+
+on:
+  issues:
+    types: [opened, reopened]
+
+jobs:
+  process-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: write
+      pull-requests: read
+      repository-projects: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Process issue with Claude Code
+        uses: anthropics/claude-code-action@beta
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_tools: "Bash"
+          direct_prompt: |
+            A new issue has been created in this repository.
+
+            Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}
+
+            Description:
+            ${{ github.event.issue.body }}
+
+            Please analyze this issue and:
+
+            1. Add relevant labels based on the content:
+               - 'documentation' for docs-related issues
+               - 'process' for workflow/process improvements
+               - 'automation' for CI/CD or automation requests
+               - 'bug' if it describes a problem
+               - 'enhancement' for feature requests
+               - 'question' for questions
+
+            2. Determine priority level (low, medium, high, urgent) based on:
+               - Impact on operations
+               - Deadline mentioned
+               - Stakeholders affected
+               - Technical urgency
+
+            3. Add a comment to the issue with:
+               - Summary of the request
+               - Suggested next steps
+               - Any questions that need clarification
+               - Estimated complexity (if applicable)
+
+            4. Optionally add the issue to your project board if you have one configured:
+               - Use: `gh project item-add <PROJECT_NUMBER> --owner <YOUR_ORG> --url ${{ github.event.issue.html_url }}`
+               - Replace <PROJECT_NUMBER> and <YOUR_ORG> with your values
+
+            Use the GitHub CLI (gh) to add labels and comments.
+
+            Be concise and actionable in your analysis.

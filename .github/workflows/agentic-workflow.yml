@@ -1,0 +1,126 @@
+name: Agentic Issue Workflow
+
+on:
+  issues:
+    types: [opened, reopened]
+  # Disabled issue_comment trigger to prevent infinite loops
+  # issue_comment:
+  #   types: [created]
+
+jobs:
+  autonomous-developer:
+    runs-on: ubuntu-latest
+    # Skip if comment is from a bot
+    if: |
+      github.event_name == 'issues' ||
+      (github.event_name == 'issue_comment' &&
+       !endsWith(github.event.comment.user.login, '[bot]'))
+
+    permissions:
+      issues: write
+      contents: write
+      pull-requests: write
+      repository-projects: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Autonomous Development with Claude
+        uses: anthropics/claude-code-action@beta
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # Use PAT for org project access
+          allowed_tools: "Bash,Read,Write,Edit,Glob,Grep,WebFetch"
+          branch_prefix: "claude/fix-issue-"
+          base_branch: "main"
+          direct_prompt: |
+            You are an autonomous AI developer working on issue #${{ github.event.issue.number }}.
+
+            ## Issue Details
+            **Title:** ${{ github.event.issue.title }}
+            **Description:**
+            ${{ github.event.issue.body }}
+
+            ## Your Mission
+
+            You should autonomously complete this issue from start to finish following the Kanban workflow.
+
+            ### Step 1: Project Board Setup (Optional)
+            - If you have a GitHub Projects board, add this issue to it:
+            - Set the status to "Backlog"
+            - Use: `gh project item-add <PROJECT_NUMBER> --owner <YOUR_ORG> --url ${{ github.event.issue.html_url }}`
+            - Replace <PROJECT_NUMBER> and <YOUR_ORG> with your actual values
+
+            ### Step 2: Analysis & Planning
+            - Analyze the issue requirements thoroughly
+            - Review relevant code using Read, Grep, and Glob tools
+            - Identify all files that need changes
+            - Add appropriate labels (bug, enhancement, documentation, etc.)
+            - Move issue to "Ready" status on project board (if applicable)
+
+            ### Step 3: Implementation
+            - Move issue to "In Progress" status (if using project board)
+            - Implement the requested changes:
+              - Write new code using Write tool
+              - Edit existing code using Edit tool
+              - Follow the coding standards in CLAUDE.md (if present)
+              - Add tests if applicable
+              - Update documentation as needed
+
+            ### Step 4: Quality Assurance
+            - Test your changes (run relevant tests with Bash)
+            - Verify the implementation meets all requirements
+            - Check for any linting or formatting issues
+
+            ### Step 5: Pull Request Creation
+            - Create a descriptive PR with:
+              - Clear title summarizing the changes
+              - Detailed description of implementation
+              - Link to the issue: "Closes #${{ github.event.issue.number }}"
+              - Testing evidence (if applicable)
+              - Screenshots/examples (if relevant)
+            - Move issue to "Review" status on project board (if applicable)
+
+            ### Step 6: Final Summary
+            - Add a comment to the issue summarizing:
+              - What was implemented
+              - PR link
+              - Any decisions made during implementation
+              - Suggestions for reviewer to check
+
+            ## Important Guidelines
+
+            - **NEVER skip the analysis phase** - understand the codebase first
+            - **Read before you write** - always check existing implementations
+            - **Test your changes** - run applicable tests when possible
+            - **Be thorough** - complete the full implementation, not partial
+            - **Communicate clearly** - explain your decisions in PR and comments
+            - **Follow conventions** - match existing code style and patterns
+            - **Security first** - avoid introducing vulnerabilities
+
+            ## Project Board Management (Optional)
+
+            If using GitHub Projects, use GitHub GraphQL API or gh CLI to move issues through stages:
+            ```bash
+            # Get project item ID
+            gh api graphql -f query='...'
+
+            # Update status field
+            gh project item-edit --id <item-id> --field-id <status-field-id> --project-id <project-id>
+            ```
+
+            ## When NOT to Proceed Autonomously
+
+            If the issue is:
+            - Unclear or ambiguous - ask clarifying questions
+            - Requires architectural decisions - summarize options and ask for guidance
+            - Involves security/auth changes - flag for human review before implementing
+            - Needs external dependencies - note what's needed
+
+            In these cases, add a detailed comment asking for clarification and set status to "Blocked".
+
+            ## Start Now
+
+            Begin by analyzing the issue, understanding the codebase, and then implementing a complete solution.
+            Work through all 6 steps autonomously, creating a production-ready PR.
