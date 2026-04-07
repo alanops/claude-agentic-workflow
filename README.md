@@ -2,6 +2,8 @@
 
 Transform your GitHub repository into an AI-powered development environment where Claude autonomously implements solutions.
 
+> Status: Active
+
 ## What Is This?
 
 This repository contains GitHub Actions workflows that enable Claude Code to:
